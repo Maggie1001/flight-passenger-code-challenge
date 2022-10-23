@@ -108,7 +108,7 @@ object Task extends App {
       val toListZip = toList.zipWithIndex
       val lastUkIndex = if (toListZip.last._1 == "uk") toListZip.last._2 else -1
 
-      // get all from UK in indices
+      // get all indices from UK
       val ukIndex = fromList.zipWithIndex.filter(x => x._1 == "uk").map(_._2)
 
       // judge final destination
@@ -118,7 +118,6 @@ object Task extends App {
       // 5 9 11 14
       // 9 - 5, 11 - 9, 14 - 11
       // 4 ,      2,     3
-      // https://stackoverflow.com/questions/31848509/subtract-adjacent-list-elements
       val diffSeq = (fixedUkIndex zip fixedUkIndex.drop(1)).map({ case (a, b) =>
         b - a
       })
