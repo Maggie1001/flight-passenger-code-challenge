@@ -28,7 +28,7 @@ object Task extends App {
     rawPassengersData.select("*").as[PassengersData].as('passenger)
 
   //Q1
-  /** get the together passengers.
+  /** get the number of flight per month.
     *
     * @param flightDataset Dataset of flight data
     * @return nothing to return
@@ -44,7 +44,7 @@ object Task extends App {
   }
 
   //Q2:
-  /** get the together passengers.
+  /** get the top 100 frequent flyers and number of flights they've flown.
     *
     * @param passengerDataset Dataset of passengers data
     * @param flightDataset Dataset of flight data
@@ -80,11 +80,17 @@ object Task extends App {
   }
 
   //Q3
-  /** get the together passengers.
+  /** get the longest run  between UK.
     *
     * @param flightDataset Dataset of flight data
     * @return nothing to return
     */
+  /* Important assumptions for this question:
+  1. I consider the result ONLY between UK. If the passengers never flew to UK, I don't consider them.
+  2. I consider this case: uk -> be -> be -> uk, as 2 longest run.
+  3. I consider this case: uk -> be -> us -> be -> uk, as 3 longest run.
+   */
+
   def getLongestRunBetweenUK(flightDataset: Dataset[FlightData]): Unit = {
     val groupDS = flightDataset
       .orderBy("date")
@@ -103,7 +109,7 @@ object Task extends App {
       val toListZip = toList.zipWithIndex
       val lastUkIndex = if (toListZip.last._1 == "uk") toListZip.last._2 else -1
 
-      // get all from UK index
+      // get all from UK in indices
       val ukIndex = fromList.zipWithIndex.filter(x => x._1 == "uk").map(_._2)
 
       // judge final destination
@@ -136,7 +142,7 @@ object Task extends App {
   }
 
   //Q4
-  /** get the together passengers.
+  /** get the together passengers that flew together.
     *
     * @param flightDataset Dataset of flight data
     * @return nothing to return
