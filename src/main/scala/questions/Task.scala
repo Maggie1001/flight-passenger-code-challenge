@@ -18,11 +18,11 @@ object Task extends App {
   import spark.implicits._
 
   val flatFileLoader = new FlatFileLoader
-  val flightPath = "data/flightData.csv"
+  val flightPath = "assets/flightData.csv"
   val rawFlightData = flatFileLoader.loadCsvByPath(spark, flightPath)
   val flightDS: Dataset[FlightData] =
     rawFlightData.select("*").as[FlightData].as('flight)
-  val passengersPath = "data/passengers.csv"
+  val passengersPath = "assets/passengers.csv"
   val rawPassengersData = flatFileLoader.loadCsvByPath(spark, passengersPath)
   val passengersDS: Dataset[PassengersData] =
     rawPassengersData.select("*").as[PassengersData].as('passenger)
@@ -54,18 +54,17 @@ object Task extends App {
       passengerDataset: Dataset[PassengersData],
       flightDataset: Dataset[FlightData]
   ): Unit = {
-    val joined = passengerDataset
-      .join(flightDataset, $"flight.passengerId" === $"passenger.passengerId")
-      .groupBy($"passenger.passengerId")
+    val aggregated = flightDataset
+      .groupBy($"passengerId")
       .agg(count($"flightId").alias("Number of Flights"))
-      .as("joined")
-    val finalDS = joined
+      .as("aggregated")
+    val finalDS = aggregated
       .join(
         passengerDataset,
-        $"passenger.passengerId" === $"joined.passengerId"
+        $"passenger.passengerId" === $"aggregated.passengerId"
       )
       .select(
-        $"joined.passengerId",
+        $"aggregated.passengerId",
         $"Number of Flights",
         $"passenger.firstName",
         $"passenger.lastName"
@@ -149,20 +148,20 @@ object Task extends App {
     */
   def getTogetherPassengers(flightDataset: Dataset[FlightData]): Unit = {
     val togetherFlight = flightDataset
-      .as("df1")
+      .as("ds1")
       .join(
-        flightDataset.as("df2"),
-        $"df1.passengerId" < $"df2.passengerId" &&
-          $"df1.flightId" === $"df2.flightId" &&
-          $"df1.date" === $"df2.date",
+        flightDataset.as("ds2"),
+        $"ds1.passengerId" < $"ds2.passengerId" &&
+          $"ds1.flightId" === $"ds2.flightId" &&
+          $"ds1.date" === $"ds2.date",
         "inner"
       )
-      .groupBy($"df1.passengerId", $"df2.passengerId")
+      .groupBy($"ds1.passengerId", $"ds2.passengerId")
       .agg(count("*").as("Number of flights together"))
       .where($"Number of flights together" >= 3)
       .select(
-        $"df1.passengerId".as("Passenger 1 ID"),
-        $"df2.passengerId".as("Passenger 2 ID"),
+        $"ds1.passengerId".as("Passenger 1 ID"),
+        $"ds2.passengerId".as("Passenger 2 ID"),
         $"Number of flights together"
       )
       .orderBy(desc("Number of flights together"))
